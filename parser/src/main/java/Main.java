@@ -1,4 +1,4 @@
-
+import java.sql.*;
 import java.net.URL;
 import java.io.IOException;
 import javax.xml.parsers.DocumentBuilder;
@@ -9,38 +9,44 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import javax.swing.JFrame;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import javax.swing.JTable;
+import javax.swing.JScrollPane;
+import java.awt.BorderLayout;
 
 public class Main {
-    static void MyFun(){
+    private static Connection connection;
+
+    static String[] MyFun(String CharCode){
+        String[] res = {"Date","Value", CharCode};
         try {
             URL connect = new URL("http://www.cbr.ru/scripts/XML_daily.asp");
             DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
             Document document = documentBuilder.parse(connect.openStream());
-
-
-            System.out.println(document.getPrefix());
-            System.out.println(document.getElementsByTagName("Date"));
-
+            res[0] = document.getDocumentElement().getAttribute("Date");
+            boolean flag = false;
             Node root = document.getDocumentElement();
-            System.out.println("Курс валют:");
-            System.out.println();
-
-
-
-            //NodeList Lisps = root.getChildNodes();
-            /*for (int i = 0; i < Lisps.getLength(); i++) {
+            NodeList Lisps = root.getChildNodes();
+            for (int i = 0; i < Lisps.getLength(); i++) {
                 Node Lisp = Lisps.item(i);
                 if (Lisp.getNodeType() != Node.TEXT_NODE) {
                     NodeList bookProps = Lisp.getChildNodes();
                     for(int j = 0; j < bookProps.getLength(); j++) {
                         Node bookProp = bookProps.item(j);
-                        if (bookProp.getNodeType() != Node.TEXT_NODE) {
-                            System.out.println(bookProp.getNodeName() + ":" + bookProp.getChildNodes().item(0).getTextContent());
+                        if(bookProp.getNodeName() == "CharCode" && CharCode.equals(bookProp.getChildNodes().item(0).getTextContent())){
+                            flag = true;
+                        }
+                        if(bookProp.getNodeName() == "Value" && flag){
+
+                            res[1] = bookProp.getChildNodes().item(0).getTextContent();
+                            flag = false;
                         }
                     }
-                    System.out.println("===========>>>>");
                 }
-            }*/
+            }
+
 
 
         } catch (ParserConfigurationException ex) {
@@ -50,14 +56,32 @@ public class Main {
         } catch (IOException ex) {
             ex.printStackTrace(System.out);
         }
-
+        return res;
     }
     public static void main(String[] args) {
-        System.out.println("Hello world!");
-        int S = 2;
-        int f = S + 10;
-        System.err.println(f);
-        MyFun();
+        //new Main().setVisible(true);
+        try{
+            Class.forName("org.sqlite.JDBC");
+            connection = DriverManager.getConnection ("jdbc:sqlite:c://Games//my.db");
+            //if not exists: CREATE TABLE IF NOT EXISTS MyTable();
+        }
+       catch (Exception e){
+            System.err.println(e.getMessage());
+       }
     }
+    public Main() {
+
+        /*final Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+        setDefaultCloseOperation(this.EXIT_ON_CLOSE);
+        setSize(screen.height*3/4,screen.width*3/8);
+        setLocationRelativeTo(null);
+
+        MyModel m = new MyModel();
+        JTable MyTable = new JTable(m);
+        JScrollPane S = new JScrollPane(MyTable);
+        getContentPane().add(S , BorderLayout.CENTER);
+        m.MyAdd(MyFun("USD"));*/
+    }
+
 
 }
